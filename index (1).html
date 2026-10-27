@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ziki – dashboard with agent handoffs</title>
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#060d1f;--card:#0c1730;--card2:#12203f;--line:#1d2d52;--tx:#eaf0ff;--mu:#8fa3cc;--bl:#2f6df0;--lb:#7db3ff;--gr:#34d399;--am:#f5b942;--pu:#a78bfa;--rd:#f87171}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}button:focus-visible,tr:focus-visible,textarea:focus-visible{outline:2px solid var(--lb);outline-offset:2px}
+nav{display:flex;align-items:center;gap:18px;padding:12px 24px;border-bottom:1px solid var(--line);background:#0a1330;flex-wrap:wrap;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.logo{font-weight:800;font-size:18px;display:flex;gap:8px;align-items:center}.logo b{color:var(--bl);font-size:22px}
+nav .l{color:var(--mu);font-weight:600}nav .sp{flex:1}
+.pill{border:1px solid var(--line);border-radius:20px;padding:6px 14px;background:transparent}
+.pts{background:#3a2c0c;border-color:#5a4513;color:var(--am);font-weight:700}
+.av{display:inline-block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#f87171,#7c3aed);vertical-align:middle;margin-right:6px}
+main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:30px;margin:0}h2{font-size:18px;margin:0}
+.sub{color:var(--mu);margin:4px 0 20px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.stat b{display:block;font-size:34px;margin:10px 0 6px}.chip{background:var(--card2);border-radius:10px;padding:2px 9px;font-size:12px;color:var(--lb);font-weight:600}
+.sec{margin-bottom:20px}.sec>header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.hint{color:var(--mu);font-size:13px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}
+th{text-align:left;color:var(--lb);font-size:12px;letter-spacing:.04em;padding:10px 8px;background:var(--card2)}
+th:first-child{border-radius:12px 0 0 12px}th:last-child{border-radius:0 12px 12px 0}
+td{padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{cursor:pointer}tbody tr:hover{background:#0f1c3a}
+.vote{background:var(--bl);border-radius:18px;padding:4px 12px;font-weight:700;display:inline-block}
+.t{font-weight:700}.id{color:var(--mu);font-size:12px}
+.tag{border-radius:8px;padding:2px 9px;font-size:12px;font-weight:600;background:var(--card2);white-space:nowrap}
+.med{background:#3a2c0c;color:var(--am)}.low{color:#b9c6e6}
+.st-res{color:#c7d2ee}.st-pf{background:#2a2058;color:var(--pu)}.st-sb{background:#3b1a24;color:var(--rd)}.st-res.tag{background:var(--card2)}
+.prov{display:inline-flex;gap:5px;align-items:center;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.pH{background:#10315f;color:var(--lb)}.pS{background:#2a2058;color:var(--pu)}.pA{background:#3a2c0c;color:var(--am)}
+.chart{display:flex;gap:10px;align-items:flex-end;height:210px;margin-top:10px}
+.col{flex:1;text-align:center;font-size:12px;color:var(--mu)}
+.bar{position:relative;height:150px;width:44px;margin:4px auto 6px;border-radius:22px;background:var(--card2);overflow:hidden}
+.bar i{position:absolute;left:0;right:0;bottom:0;background:var(--bl);transition:height .6s}
+.bar i.ag{background:var(--pu)}
+.bar:after{content:"";position:absolute;left:0;right:0;bottom:62.5%;border-top:2px dashed #b9c6e6aa}
+.col strong{display:block;color:var(--tx);font-size:13px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--mu);font-size:13px;margin-top:6px}.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:var(--c)}
+.ledger{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.lrow{display:flex;gap:10px;align-items:center;padding:6px 0;flex-wrap:wrap}.lrow .p{margin-left:auto;color:var(--gr);font-weight:700}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
+.on{background:var(--gr)}.off{background:#6b7a99}
+.scrim{position:fixed;inset:0;background:#000a;display:none;z-index:9}.scrim.o{display:block}
+aside{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:#0a1330;border-left:1px solid var(--line);z-index:10;overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) 22px calc(30px + env(safe-area-inset-bottom,0px));transform:translateX(100%);transition:transform .25s}
+aside.o{transform:none}
+.x{float:right;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:4px 12px}
+.ac{border:1px solid #3b2f78;background:linear-gradient(180deg,#171446,#0f1838);border-radius:14px;padding:16px;margin:16px 0}
+.ac h3{margin:0 0 10px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:13px;margin:10px 0}.kv dt{color:var(--mu)}.kv dd{margin:0}
+.meter{height:10px;border-radius:6px;background:var(--card2);overflow:hidden;margin:6px 0 4px}.meter i{display:block;height:100%}
+.nc{margin:8px 0 0;padding-left:18px;color:#d3dcf5;font-size:13px}
+.btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);border-radius:12px;padding:9px 16px;font-weight:700;background:var(--card2)}
+.ok{background:var(--gr);color:#04261a;border-color:var(--gr)}.no{border-color:#7a2b3c;color:var(--rd)}
+textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--tx);padding:10px;font:inherit;margin-top:10px;min-height:70px}
+.tl{list-style:none;margin:10px 0 0;padding:0;border-left:2px solid var(--line)}.tl li{padding:0 0 14px 16px;position:relative}
+.tl li:before{content:"";position:absolute;left:-6px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--bl)}
+.tl .tm{color:var(--mu);font-size:12px}
+.note{background:var(--card2);border-radius:10px;padding:10px 12px;font-size:13px;color:#d3dcf5;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(30px);background:var(--gr);color:#04261a;font-weight:700;padding:10px 18px;border-radius:12px;opacity:0;transition:.25s;z-index:20;max-width:90%}
+.toast.o{opacity:1;transform:translateX(-50%)}
+.newtag{background:var(--pu);color:#150f3a;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px}
+</style></head><body>
+<nav><div class="logo"><b>Z</b>ziki</div><span class="l">Zedu ▾</span><span class="l">Product</span><span class="l">Marketing</span><span class="l">Security</span><span class="sp"></span>
+<span class="pill">Agents ▾</span><span class="pill"><span class="av"></span>Daniel Akor</span><span class="pill pts" id="hp">🏆 683 pts</span></nav>
+<main>
+<div class="top"><div><h1>Welcome back, Daniel</h1><p class="sub">Issues, votes and your points for Ziki at a glance.</p></div><button class="pill">+ New issue</button></div>
+<div class="grid" id="stats"></div>
+<section class="card sec"><header><div><h2>Issues assigned to me</h2><span class="hint">Click a row to open the agent investigation. <span class="newtag">NEW</span></span></div></header>
+<div class="tw"><table><thead><tr><th>VOTES</th><th>ISSUE</th><th>PRIORITY</th><th>STATUS</th><th>WORKED BY</th><th>CONFIDENCE</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section class="card sec"><header><div><h2>Your points <span class="newtag">CREDIT SPLIT</span></h2><span class="hint">Weekly, 500 pts required. Verifying a fix earns credit, and agent credit is capped.</span></div><b style="font-size:30px" id="tot">683</b></header>
+<div class="chart" id="chart"></div>
+<div class="legend"><span style="--c:var(--bl)">Human credit</span><span style="--c:var(--pu)">Agent credit (to owner)</span><span style="--c:#b9c6e6">Weekly requirement · 500 pts</span></div>
+<div class="ledger"><div class="hint">Credit ledger this week</div><div id="ledger"><div class="hint" style="padding:8px 0">Verify a proposed fix to see how points are split.</div></div></div></section>
+<section class="card sec"><header><h2>Your agents <span class="chip">2</span></h2></header><div class="tw"><table><thead><tr><th>AGENT</th><th>STATUS</th><th>QUEUE</th><th>TRACK RECORD</th></tr></thead><tbody id="ag"></tbody></table></div></section>
+</main>
+<div class="scrim" id="sc"></div><aside id="dr" aria-label="Issue detail"></aside><div class="toast" id="to"></div>
+<script>
+const AG={mimo:{n:'MiMo Reviewer',o:'Daniel',ok:9,tot:11},kora:{n:'Kora Fixer',o:'Amaka O.',ok:4,tot:7}};
+const BASE={Low:20,Medium:40};
+let I=[
+{id:429,t:'[Web] DM unread badge never clears: reducer compares stale count',v:6,p:'Low',s:'Proposed fix',ag:'mimo',mode:'S',conf:86,repro:'Reproduced',cause:'dmReducer keeps the old unread count when a conversation is opened, so the badge never resets.',fix:'PR #1204: reset unread to 0 on CONVERSATION_OPENED',unc:['Mobile app behaviour'],test:'Open a DM with 3 unread. The badge should clear.'},
+{id:467,t:'[Web] Clearing the last recent search is never persisted',v:5,p:'Low',s:'Proposed fix',ag:'mimo',mode:'S',conf:91,repro:'Reproduced',cause:'An empty array is treated as "no change" and skipped when saving.',fix:'PR #1209: persist empty list explicitly',unc:[],test:'Clear the last recent search, then reload. It should stay cleared.'},
+{id:424,t:'[Desktop/Web] New-chat composer re-sends the previous message',v:5,p:'Medium',s:'Proposed fix',ag:'kora',mode:'S',conf:72,repro:'Reproduced',cause:'Composer draft state is not reset when a new chat mounts.',fix:'PR #1211: key composer by chat id',unc:['Desktop app build','Slow network case'],test:'Send a message, start a new chat. The composer should be empty.'},
+{id:476,t:'[Web] Notification sidebar can show another organisation’s data',v:4,p:'Medium',s:'Proposed fix',ag:'kora',mode:'A',conf:58,repro:'Needs info',cause:'Likely a cache key missing the org id, but this was not reproduced.',fix:'PR #1215: scope notification cache by orgId',unc:['Could not reproduce','Cross-org permission checks','Server-side filtering'],test:'Switch org twice quickly. Only the current org’s items should show.'},
+{id:480,t:'[Web] All three password labels point at the Old password field',v:4,p:'Low',s:'Resolved',ag:null,mode:'H',conf:null,done:1}];
+I.forEach(i=>{i.log=[{w:'H',who:'Daniel Akor',x:'Reported the issue',tm:'6 days ago'}];if(i.ag){i.log.push({w:i.mode,who:AG[i.ag].n,x:'Investigation: '+i.repro+'. Proposed a fix ('+i.conf+'% confidence).',tm:'5 days ago'})}else i.log.push({w:'H',who:'Daniel Akor',x:'Fixed and verified manually',tm:'6 days ago'})});
+let wk=0,human=0,agent=0,led=[],cur=null;
+const $=s=>document.getElementById(s);
+const prov=(m,n)=>m==='H'?'<span class="prov pH">👤 Human</span>':m==='S'?'<span class="prov pS">🤖 Agent · supervised by Daniel</span>':'<span class="prov pA">🤖 Agent · autonomous</span>';
+const cc=c=>c>=80?'var(--gr)':c>=65?'var(--am)':'var(--rd)';
+function render(){
+const open=I.filter(i=>i.s==='Proposed fix').length,res=I.filter(i=>i.s==='Resolved').length;
+$('stats').innerHTML=`<div class="card stat">Points<b>${683+wk}</b><span class="chip">${Math.max(0,500-(683+wk))||'500 reached'}</span></div><div class="card stat">Awaiting my verification<b>${open}</b><span class="chip">agent fixes</span></div><div class="card stat">Assigned to me<b>27</b><span class="chip">0 high priority</span></div><div class="card stat">Resolved issues<b>${22+I.filter(i=>i.s==='Resolved'&&!i.done).length}</b><span class="chip">${res} in this view</span></div>`;
+$('hp').textContent='🏆 '+(683+wk)+' pts';$('tot').textContent=683+wk;
+$('rows').innerHTML=I.map(i=>`<tr tabindex="0" data-id="${i.id}"><td><span class="vote">^ ${i.v}</span></td><td><div class="t">${i.t}</div><div class="id">#${i.id}</div></td><td><span class="tag ${i.p==='Medium'?'med':'low'}">${i.p}</span></td><td><span class="tag ${i.s==='Resolved'?'st-res':i.s==='Sent back'?'st-sb':'st-pf'}">${i.s==='Resolved'?'● Resolved':i.s}</span></td><td>${prov(i.mode)}</td><td>${i.conf?`<div style="width:90px"><div class="meter"><i style="width:${i.conf}%;background:${cc(i.conf)}"></i></div>${i.conf}%</div>`:'<span class="hint">n/a</span>'}</td></tr>`).join('');
+document.querySelectorAll('#rows tr').forEach(r=>{r.onclick=()=>open_(+r.dataset.id);r.onkeydown=e=>{if(e.key==='Enter')open_(+r.dataset.id)}});
+const weeks=['7 Sept','14 Sept','21 Sept','28 Sept','5 Oct','12 Oct','19 Oct','26 Oct'];
+$('chart').innerHTML=weeks.map((w,k)=>{let h=0,a=0;if(k===6)h=683;if(k===7){h=human;a=agent}
+const hh=Math.min(h/800*100,100),aa=Math.min(a/800*100,100-hh);return`<div class="col"><strong>${h+a}</strong><div class="bar"><i style="height:${hh+aa}%;${a?'':'display:'+(h?'block':'none')};background:${a?'linear-gradient(to top,var(--bl) '+(hh/(hh+aa)*100)+'%,var(--pu) 0)':'var(--bl)'}"></i></div>${w}</div>`}).join('');
+$('ag').innerHTML=Object.entries(AG).map(([k,a])=>{const q=I.filter(i=>i.ag===k&&i.s==='Proposed fix').length,b=I.filter(i=>i.ag===k&&i.s==='Sent back').length;
+return`<tr><td><b>${a.n}</b> <span class="id">owner: ${a.o}</span></td><td><span class="dot on"></span>Online</td><td>${q} awaiting verification${b?`, ${b} sent back`:''}</td><td>${a.ok}/${a.tot} verified (${Math.round(a.ok/a.tot*100)}%)</td></tr>`}).join('');
+$('ledger').innerHTML=led.length?led.map(l=>`<div class="lrow">${prov(l.m)}<span>${l.x}</span><span class="p">+${l.p}</span></div>`).join(''):'<div class="hint" style="padding:8px 0">Verify a proposed fix to see how points are split.</div>'}
+function open_(id){cur=I.find(i=>i.id===id);drawer();$('dr').classList.add('o');$('sc').classList.add('o')}
+function close_(){$('dr').classList.remove('o');$('sc').classList.remove('o')}
+$('sc').onclick=close_;
+function drawer(sendback){const i=cur,a=i.ag&&AG[i.ag];
+let card='';
+if(a){const warn=i.mode==='A'?'<div class="note" style="border-left:3px solid var(--am)">Autonomous work with confidence under 65%. Review closely. Agent credit is capped at 25% until you verify.</div>':'';
+card=`<div class="ac"><h3>Agent investigation ${prov(i.mode)}</h3><div class="hint">${a.n} · owner ${a.o} · track record ${a.ok}/${a.tot} verified</div>
+<dl class="kv"><dt>Reproduction</dt><dd><b style="color:${i.repro==='Reproduced'?'var(--gr)':'var(--am)'}">${i.repro}</b></dd><dt>Suspected cause</dt><dd>${i.cause}</dd><dt>Proposed fix</dt><dd>${i.fix}</dd><dt>How to test</dt><dd>${i.test}</dd>
+<dt>Confidence</dt><dd><div class="meter"><i style="width:${i.conf}%;background:${cc(i.conf)}"></i></div><b>${i.conf}%</b> <span class="hint">historically ${Math.round(a.ok/a.tot*100)}% of this agent’s fixes verified</span></dd></dl>
+<div class="hint">What it could not check</div>${i.unc.length?'<ul class="nc">'+i.unc.map(u=>'<li>'+u+'</li>').join('')+'</ul>':'<div class="nc" style="list-style:none;margin-left:-18px">Nothing flagged</div>'}${warn}</div>`}
+let act='';
+if(i.s==='Proposed fix'){const b=BASE[i.p],hs=Math.round(b*(i.mode==='A'?.75:.6)),as=b-hs;
+act=`<div class="note">Verifying awards <b>${b} pts</b>: <b>${hs}</b> to you as verifier, <b>${as}</b> to ${a.o} as agent owner${i.mode==='A'?' (capped at 25%)':''}.</div>
+${sendback?'<textarea id="rs" placeholder="Why is this fix not ready? The agent receives this as structured feedback."></textarea><div class="btns"><button class="btn no" id="sb2">Send to agent</button><button class="btn" id="cn">Cancel</button></div>':'<div class="btns"><button class="btn ok" id="vf">Verify and resolve</button><button class="btn no" id="sb">Send back</button></div>'}`}
+else if(i.s==='Sent back')act='<div class="note">Sent back. '+a.n+' has this in its queue with your feedback.</div>';
+else act='<div class="note">Resolved.</div>';
+$('dr').innerHTML=`<button class="x" id="cl">Close</button><div class="id">#${i.id} · ${i.p} priority</div><h2 style="margin-top:4px">${i.t}</h2><div style="margin-top:8px"><span class="tag ${i.s==='Resolved'?'st-res':i.s==='Sent back'?'st-sb':'st-pf'}">${i.s}</span></div>${card}${act}
+<h3 style="margin:20px 0 0;font-size:15px">Handoff timeline</h3><ul class="tl">${i.log.map(l=>`<li><div>${prov(l.w)} <b>${l.who}</b></div><div>${l.x}</div><div class="tm">${l.tm}</div></li>`).join('')}</ul>`;
+$('cl').onclick=close_;
+if($('vf'))$('vf').onclick=verify;if($('sb'))$('sb').onclick=()=>drawer(true);if($('cn'))$('cn').onclick=()=>drawer();if($('sb2'))$('sb2').onclick=back}
+function toast(t){const e=$('to');e.textContent=t;e.classList.add('o');setTimeout(()=>e.classList.remove('o'),2800)}
+function verify(){const i=cur,a=AG[i.ag],b=BASE[i.p],hs=Math.round(b*(i.mode==='A'?.75:.6)),as=b-hs;
+i.s='Resolved';a.ok++;a.tot++;human+=hs;
+led.push({m:'H',x:`#${i.id} verified by Daniel`,p:hs});
+if(a.o==='Daniel'){human+=0;agent+=as;wk+=as}else{led.push({m:i.mode,x:`#${i.id} agent credit to ${a.o}`,p:as});}
+if(a.o==='Daniel')led.push({m:i.mode,x:`#${i.id} agent credit to Daniel (agent owner)`,p:as});
+wk+=hs;i.log.push({w:'H',who:'Daniel Akor',x:`Verified and resolved. Credit split ${hs}/${as}.`,tm:'just now'});
+render();drawer();toast(`Verified. You earned ${hs} pts${a.o==='Daniel'?' + '+as+' as agent owner':''}`)}
+function back(){const i=cur,r=$('rs').value.trim()||'No reason given';AG[i.ag].tot++;i.s='Sent back';i.conf=Math.max(30,i.conf-15);
+i.log.push({w:'H',who:'Daniel Akor',x:'Sent back: “'+r.replace(/</g,'&lt;')+'”',tm:'just now'});
+render();drawer();toast('Sent back to '+AG[i.ag].n+'. Its track record updated.')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close_()});
+render();
+</script></body></html>
